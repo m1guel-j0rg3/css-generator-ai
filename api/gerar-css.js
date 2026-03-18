@@ -1,13 +1,14 @@
 export default async function handler(req, res) {
-    if (req.method !== "POST") return res.status(405).end();
+    console.log("Funcao chamada");
 
-    // 🔥 Logs de debug
-    console.log("Prompt recebido:", req.body.prompt);
-    console.log("Chave GROQ_API_KEY:", process.env.GROQ_API_KEY ? "OK" : "NÃO ENCONTRADA");
-    console.log("URL da API sendo chamada:", "https://api.groq.com/openai/v1/chat/completions");
+    if (req.method !== "POST") {
+        console.log("Metodo invalido:", req.method);
+        return res.status(405).json({ error: "Metodo nao permitido" });
+    }
 
     try {
-        // Chamada para a API do Groq
+        console.log("Body recebido:", req.body);
+
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -15,36 +16,28 @@ export default async function handler(req, res) {
                 "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: "llama-3.1-70b-versatile",
-                messages: [{ role: "user", content: req.body.prompt }]
+                model: "llama3-8b-8192",
+                messages: [
+                    { role: "user", content: req.body.prompt }
+                ]
             })
         });
 
-        // 🔥 Log da resposta bruta
-        const rawData = await response.text();
-        console.log("Resposta bruta da API:", rawData);
+        console.log("Status da API:", response.status);
 
-        // Verifica se o HTTP está OK
-        if (!response.ok) {
-            console.log("Erro HTTP da API:", response.status, response.statusText);
-            return res.status(500).json({ error: rawData });
-        }
+        const text = await response.text();
+        console.log("Resposta bruta:", text);
 
-        // Converte para JSON
-        const data = JSON.parse(rawData);
-
-        // Valida o conteúdo da resposta
-        if (!data.choices || data.choices.length === 0 || !data.choices[0].message?.content) {
-            console.log("Resposta inválida da API:", data);
-            return res.status(500).json({ error: "Resposta inválida da API" });
-        }
-
-        // Envia CSS para o frontend
-        const css = data.choices[0].message.content;
-        res.status(200).json({ css });
+        return res.status(response.status).json({
+            status: response.status,
+            resposta: text
+        });
 
     } catch (erro) {
-        console.error("Erro no handler:", erro);
-        res.status(500).json({ error: erro.message });
+        console.error("Erro real:", erro);
+        return res.status(500).json({
+            error: erro.message,
+            stack: erro.stack
+        });
     }
 }
