@@ -20,12 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let dados = await resposta.json();
 
-            if (!dados.choices || dados.choices.length === 0) {
+                if (!dados.css) {
                 throw new Error("Resposta inválida da API");
-            }
+                }
 
-            let resultado = dados.choices[0].message.content;
-
+            let resultado = dados.css;
             // Remove blocos de markdown, se houver
             let htmlLimpo = resultado.replace(/```html|```/g, "").trim();
 
