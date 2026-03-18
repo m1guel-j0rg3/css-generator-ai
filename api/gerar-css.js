@@ -2,7 +2,7 @@ export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).end();
     }
-
+    
     console.log("Prompt recebido:", req.body.prompt);
     console.log("Chave GROQ_API_KEY:", process.env.GROQ_API_KEY ? "OK" : "NÃO ENCONTRADA");
 
